@@ -1,0 +1,5 @@
+aiohttp==3.11.12
+azure-ai-inference==1.0.0b9
+loguru==0.7.3
+tencentcloud_sdk_python_common==3.0.1316
+tencentcloud_sdk_python_lkeap==3.0.1316
