@@ -1,0 +1,5 @@
+aiohttp==3.11.12
+loguru==0.7.3
+openai==1.71.0
+pandas==2.2.3
+groq==0.22.0
