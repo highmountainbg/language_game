@@ -87,7 +87,7 @@ class SelectOnePlayer(Tool):
         self.abstain = abstain
         self.output_format = int
 
-    def parse_result(self, result: dict):
+    def parse_result(self, result: str):
         """
         Parse the result of the tool execution.
         :param result: The result of the tool execution.
@@ -138,14 +138,14 @@ class DecideBinary(Tool):
         )
         self.output_format = bool
 
-    def parse_result(self, result: dict):
+    def parse_result(self, result: str):
         """
         Parse the result of the tool execution.
         :param result: The result of the tool execution.
         :return: The parsed result.
         """
         # Find the player with the given id and return it
-        decision = result["decision"].lower()
+        decision = result.lower()
         if decision == "false":
             return False
         elif decision == "true":
