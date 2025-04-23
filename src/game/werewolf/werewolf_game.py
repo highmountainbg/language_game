@@ -675,7 +675,7 @@ class WitchAct(WerewolfGameProcess):
             self.execute_subprocess(heal)
 
     def poison(self):
-        if self.witch.poison_remain:
+        if self.witch.poison_remain and not self.payload['heal']:
             poison = self.create_subprocess(Poison)
             self.execute_subprocess(poison)
 

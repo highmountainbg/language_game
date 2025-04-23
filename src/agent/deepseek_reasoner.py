@@ -35,6 +35,7 @@ def generate(messages: List[Dict[str, str]]):
             "stream": False,
             "temperature": 1.0,
             "response_format": {"type": "text"},
+            "max_tokens": 8000,
         }
         logger.trace(f"params: {params}")
 

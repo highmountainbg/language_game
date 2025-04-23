@@ -35,28 +35,6 @@ class Tool:
     def __str__(self):
         return json.dumps(self.schema, ensure_ascii=False)
 
-    # def get_tool_call(self, response: str):
-    #     """
-    #     Get the tool call from the response.
-    #     :param response: The response from the agent.
-    #     :return: The tool call.
-    #     """
-    #     # Parse the response to get the tool call
-    #     result = re.findall(r"(?<=<tool_call>).*?(?=</tool_call>)",
-    #                         response, re.DOTALL)
-    #     if len(result) == 0:
-    #         raise NoToolCall("No tool call found in the response")
-    #     elif len(result) > 1:
-    #         raise TooManyToolCalls("Too many tool calls in the response")
-    #     try:
-    #         result = json.loads(result[0].strip())
-    #         assert result["name"] == self.name
-    #         return result
-    #     except AssertionError:
-    #         raise WrongToolName(f"Expected {self.name}, got {result['name']}")
-    #     except json.JSONDecodeError:
-    #         raise InvalidToolCall("Invalid tool call in the response")
-
     def parse_result(self):
         """
         Parse the result of the tool execution.
@@ -103,11 +81,7 @@ class SelectOnePlayer(Tool):
             if self.abstain:
                 return None
             else:
-                raise BadChoice(
-                    "Abstain is not allowed!"
-                    f'Expected choice from {set(self.choices)},'
-                    f'got "{chosen_id}"'
-                )
+                raise BadChoice("Abstain is not allowed!")
 
         for player in self.choices:
             if player.id == chosen_id:
@@ -115,8 +89,7 @@ class SelectOnePlayer(Tool):
 
         raise BadChoice(
             'Choice not possible!'
-            f'Expected choice from {set(self.choices)},'
-            f'got "{result["player_id"]}"'
+            f'Expected choice from {set(self.choices)}, got "{chosen_id}"'
         )
 
 
@@ -154,5 +127,5 @@ class DecideBinary(Tool):
             raise InvalidToolCall(
                 'Choice not possible!'
                 f'Expected choice from {set([True, False])},'
-                f'got "{result["decision"]}"'
+                f'got "{result}"'
             )
