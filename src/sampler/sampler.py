@@ -452,8 +452,6 @@ class GameSampler:
         if node.depth_remain == 0:
             return []
 
-        logger.info(f"Sampling branching points from node {node}")
-
         nodes = node.get_upstream_branchable()
 
         if len(nodes) <= node.depth_remain:
@@ -483,6 +481,8 @@ class GameSampler:
                 to_be_played = branching_point.expand()
                 # step 5. Add the new nodes to the sample queue.
                 self.sample_queue.extendleft(to_be_played)
+            self.save()
+            logger.info("Saved game sampler.")
         logger.success("Sampling finished.")
 
     def save(self):
