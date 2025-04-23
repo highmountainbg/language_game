@@ -215,8 +215,6 @@ class Player:
             choices: List["Player"] = None,
             abstain: bool = True,
     ):
-        if abstain:
-            choices += [0]
         target = self.think_and_speak(
             audience=self.game.moderator,
             tool=SelectOnePlayer(choices=choices, abstain=abstain)
