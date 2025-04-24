@@ -156,33 +156,47 @@ def generate_html(tree_data, game_name, sampler_id):
     // Tree data
     const treeData = {json.dumps(tree_data)};
     
-    // Set up dimensions and margins
+    // Set up margins
     const margin = {{top: 40, right: 120, bottom: 40, left: 120}};
-    const width = 1000;
-    const height = 800;
     
-    // Initialize D3.js tree layout
-    const tree = d3.tree().size([height, width]);
+    // Constant node spacing
+    const nodeWidth = 50;     // horizontal spacing between nodes
+    const nodeHeight = 50;    // vertical spacing between levels
+    
+    // Initialize D3.js tree layout with fixed node size
+    const tree = d3.tree()
+        .nodeSize([nodeWidth, nodeHeight])
+        .separation((a, b) => 1); // Consistent separation between nodes
     
     // Create a hierarchy from the data
     const root = d3.hierarchy(treeData);
+    
+    // Compute the tree layout
+    tree(root);
+    
+    // Find tree boundaries
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    root.each(d => {{
+        minX = Math.min(minX, d.x);
+        maxX = Math.max(maxX, d.x);
+        minY = Math.min(minY, d.y);
+        maxY = Math.max(maxY, d.y);
+    }});
+    
+    const width = maxX - minX + 200;   // Add padding
+    const height = maxY - minY + 200;  // Add padding
     
     // Set up the SVG container
     const svg = d3.select("#tree-container")
         .append("svg")
         .attr("width", "100%")
         .attr("height", "100%")
-        .attr("viewBox", [0, 0, width + margin.left + margin.right, height + margin.top + margin.bottom])
+        .attr("viewBox", [minX - 100, minY - 100, width, height])
         .call(d3.zoom().on("zoom", (event) => {{
             g.attr("transform", event.transform);
-        }}))
-        .append("g")
-        .attr("transform", `translate(${{margin.left}},${{margin.top}})`);
+        }}));
     
     const g = svg.append("g");
-    
-    // Compute the tree layout
-    tree(root);
     
     // Create the links between nodes
     const link = g.selectAll(".link")
@@ -199,6 +213,7 @@ def generate_html(tree_data, game_name, sampler_id):
         .enter().append("g")
         .attr("class", "node")
         .attr("transform", d => `translate(${{d.x}},${{d.y}})`)
+        .attr("transform", d => `translate(${{d.x}},${{d.y}})`)
         .on("click", (event, d) => {{
             // Remove previous selection
             d3.selectAll(".node").classed("selected", false);
@@ -213,14 +228,7 @@ def generate_html(tree_data, game_name, sampler_id):
     // Add circles for the nodes
     node.append("circle")
         .attr("r", 10);
-    
-    // Add labels for the nodes
-    // node.append("text")
-    //     .attr("dy", ".35em")
-    //     .attr("x", d => d.children ? -13 : 13)
-    //     .style("text-anchor", d => d.children ? "end" : "start")
-    //     .text(d => "");
-    
+
     // Function to display node details
     function showNodeDetails(nodeData) {{
         let details = `<h3>node_id</h3><pre>${{nodeData.id}}</pre>`;
@@ -245,7 +253,7 @@ def generate_html(tree_data, game_name, sampler_id):
     
     document.getElementById("reset").addEventListener("click", () => {{
         svg.transition()
-            .call(d3.zoom().transform, d3.zoomIdentity.translate(margin.left, margin.top));
+            .call(d3.zoom().transform, d3.zoomIdentity);
     }});
 
     // Search functionality
@@ -266,18 +274,9 @@ def generate_html(tree_data, game_name, sampler_id):
         }}
     }});
     
-    // Initialize the view to show the entire tree
-    svg.call(d3.zoom().transform, d3.zoomIdentity.translate(margin.left, margin.top));
+    // Initialize view
+    svg.call(d3.zoom().transform, d3.zoomIdentity);
     </script>
 </body>
 </html>
     """
-
-
-def newest_entry(directory_path):
-    # Get all entries in the directory excluding hidden files
-    entries = [x for x in os.scandir(directory_path) if x.name[0] != '.']
-    # Sort by creation time, newest first
-    entries.sort(key=lambda x: os.path.getctime(x), reverse=True)
-
-    return entries[0].name if entries else None
