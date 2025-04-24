@@ -1,4 +1,5 @@
 import os
+import random
 import time
 from typing import List, Union, Optional
 
@@ -9,6 +10,7 @@ from utils.utils import (
     order_str,
     one_line_str,
     write_jsonl_single_line,
+    unique_identifier,
 )
 from utils.exceptions import (
     BadChoice,
@@ -40,6 +42,7 @@ class Player:
             tools: List[Tool] = None
     ):
         self.game = game
+        self.language = self.game.language
         self.id = player_id
         self.memory = Memory(self)
         self.alive = True
@@ -48,39 +51,49 @@ class Player:
         self.system = ""
 
     def __str__(self):
-        return f"{self.id}号"
+        if self.language == "zh":
+            return f"{self.id}号"
+        elif self.language == "en":
+            return f"Player {self.id}"
+        else:
+            raise ValueError(f"Unsupported language: {self.language}")
 
-    def initialize_system(self, system: str):
+    def initialize_system(
+            self,
+            system: str,
+            include_tools: bool = False
+    ):
         self.system = system
-#         self.system += """
-# # Tools
+        if include_tools:
+            self.system += """
+# Tools
 
 
-# You may call one or more functions to assist with the user query.
+You may call one or more functions to assist with the user query.
 
-# You are provided with function signatures within <tools></tools> XML tags:
-# <tools>
-# """
-#         self.system += "\n".join([str(tool()) for tool in self.tools])
-#         self.system += """
-# </tools>
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+"""
+            self.system += "\n".join([str(tool()) for tool in self.tools])
+            self.system += """
+</tools>
 
-# For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
-# <tool_call>
-# {"name": <function-name>, "arguments": <args-json-object>}
-# </tool_call>
-# """
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call>
+"""
 
     def observe(self):
         return self.game.observable_state
 
     def __is_speaking_to_all(self, audience: List['Player']):
-        alive_players = set(self.game.alive_players)
-        alive_players.discard(self.game.moderator)
+        players = set(self.game.players)
+        players.discard(self.game.moderator)
 
         audience_set = set(audience)
         audience_set.discard(self.game.moderator)
-        return alive_players == audience_set
+        return players == audience_set
 
     def validate_audience(
             self,
@@ -88,7 +101,7 @@ class Player:
             audience: Union['Player', List['Player'], None] = None
     ) -> List['Player']:
         if audience is None:
-            audience = self.game.alive_players
+            audience = self.game.players
         elif not isinstance(audience, list):
             audience = [audience]
         if speaker not in audience:
@@ -99,13 +112,17 @@ class Player:
             self,
             speaker: 'Player',
             audience: List['Player']
-    ):
+    ) -> str:
         if self.__is_speaking_to_all(audience):
-            result = "所有人"
+            if self.language == "zh":
+                return "所有人"
+            elif self.language == "en":
+                return "all"
+            else:
+                raise ValueError(f"Unsupported language: {self.language}")
         else:
-            result = order_str(
+            return order_str(
                 sorted(list(set(audience) - {speaker}), key=lambda x: x.id))
-        return result
 
     def speak(
             self,
@@ -140,7 +157,25 @@ class Player:
 
         while not success:
             try:
-                thought, content, output = generate(messages)
+                #### dummy agent brain ####
+                thought = f"test thought {unique_identifier()}"
+                if isinstance(tool, SelectOnePlayer):
+                    choices = [p.id for p in tool.choices]
+                    if tool.abstain:
+                        choices += [0]
+                    content = str(random.choice(choices))
+                elif isinstance(tool, DecideBinary):
+                    choices = [True, False]
+                    content = str(random.choice(choices))
+                else:
+                    content = f"test content {unique_identifier()}"
+                output = f"<think>\n{thought}\n</think>\n{content}"
+                #### dummy agent brain ####
+
+                #### real agent brain ####
+                # thought, content, output = generate(messages)
+                #### real agent brain ####
+
                 if tool is None:
                     result = content
                 else:
@@ -195,8 +230,12 @@ class Player:
         prompt = self.memory.retrieve()
 
         if tool is None:
-            prompt += f"\n你的身份是{self}玩家，说话的对象是{audience_str}，"
-            "思考后的内容你说话的对象可以听到，直接开始说话。"
+            if self.language == "zh":
+                prompt += f"\n你说话的对象是{audience_str}，思考后直接开始说话。"
+            elif self.language == "en":
+                prompt += f"\nYou are speaking to {audience_str}. Speak directly after thinking."
+            else:
+                raise ValueError(f"Unsupported language: {self.language}")
         else:
             prompt += f"output format: {tool.output_format.__name__}"
 
@@ -215,7 +254,12 @@ class Player:
 
     def consolidate_memory(self):
         prompt = self.memory.retrieve()
-        prompt += "\n结合你之前的记忆和新增信息，记录从游戏开始到现在发生的事。"
+        if self.language == "zh":
+            prompt += "\n结合你之前的记忆和新增信息，记录从游戏开始到现在发生的事。"
+        elif self.language == "en":
+            prompt += "\nAccording to old memeory and new information, record what has happened in the game so far."
+        else:
+            raise ValueError(f"Unsupported language: {self.language}")
 
         _, new_memory, _ = self.generate_thought_and_content(prompt)
 

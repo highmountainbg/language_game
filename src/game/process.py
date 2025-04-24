@@ -36,6 +36,7 @@ class Process:
             self.name = name
         self.nxt = None
         self.payload = {}
+        self.language = self.game.language
 
         self.sub = []
         self.__name_to_sub = {}
@@ -296,8 +297,10 @@ class Game(Process):
 
     def __init__(
             self,
-            name: str
+            name: str,
+            language: str = "en"
     ):
+        self.language = language
         super().__init__(
             parent=None,
             name=name

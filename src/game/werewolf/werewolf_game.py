@@ -1,22 +1,29 @@
 import random
-from typing import List, Union, Dict, Optional
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Union,
+)
 
 from loguru import logger
 
-from ..process import (
-    Game,
-    Process,
-    checkpoint,
-    concurrent_checkpoint
-)
 from agent import (
     Player,
     DecideBinary,
     SelectOnePlayer,
 )
-from utils.constants import *
-from utils.utils import *
-from .werewolf_template import *
+from utils.utils import order_str
+from .werewolf_template import (
+    WEREWOLF_GAME_NAME,
+    WEREWOLF_INFO,
+)
+from ..process import (
+    Game,
+    Process,
+    checkpoint,
+    concurrent_checkpoint,
+)
 
 
 class WerewolfGamePlayer(Player):
@@ -207,7 +214,10 @@ class Kill(WerewolfGameProcess):
         """
         self.announce_death(self.cause.keys())
 
-        for dead in sorted(self.cause.keys(), key=lambda x: self.cause.get(x)):
+        for dead in sorted(
+            self.cause.keys(),
+            key=lambda x: self.cause.get(x)
+        ):
             self.create_subprocess(
                 Die,
                 involved=dead,
@@ -467,7 +477,7 @@ class Voting(WerewolfGameProcess):
             msg += f"投票的结果是{temp[0]}。"
             result = temp[0]
         elif len(temp) == 0:
-            msg += f"没有有效票，投票没有结果。"
+            msg += "没有有效票，投票没有结果。"
             result = None
         else:
             msg += f"{order_str(temp)}票数最多且相同，投票没有结果。"
@@ -531,7 +541,6 @@ class Discussion(WerewolfGameProcess):
 class SeerAct(WerewolfGameProcess):
 
     def ask(self):
-        logger.info(f"\n{'='*64}\n第{self.game.round}夜-预言家行动\n{'='*64}")
         self.moderator.speak("你要查验谁？输出目标序号。", self.seer)
 
     @checkpoint
@@ -559,7 +568,6 @@ class WerewolvesAct(WerewolfGameProcess):
 
     def discussion(self):
         if len(self.werewolves) > 1:
-            logger.info(f"\n{'='*64}\n第{self.game.round}夜-狼人行动-讨论\n{'='*64}")
             self.payload["werewolves_target"] = None
             discussion = self.create_subprocess(
                 process_class=Discussion,
@@ -569,7 +577,6 @@ class WerewolvesAct(WerewolfGameProcess):
             self.execute_subprocess(discussion)
 
     def voting(self):
-        logger.info(f"\n{'='*64}\n第{self.game.round}夜-狼人行动-投票\n{'='*64}")
         voting = self.create_subprocess(
             process_class=Voting,
             involved=self.werewolves,
@@ -638,8 +645,8 @@ class Poison(WerewolfGameProcess):
 
     def ask(self):
         self.moderator.speak(
-            f"你要对谁使用毒药？输出目标序号，不使用输出0。",
-            self.witch
+            "你要对谁使用毒药？输出目标序号，不使用输出0。",
+            audience=self.witch
         )
 
     @checkpoint
@@ -664,8 +671,6 @@ class Poison(WerewolfGameProcess):
 class WitchAct(WerewolfGameProcess):
 
     def initialize(self):
-        logger.info(f"\n{'='*64}\n第{self.game.round}夜-女巫行动\n{'='*64}")
-
         self.payload['heal'] = False
         self.payload['poison_target'] = None
 
@@ -701,7 +706,6 @@ class WitchAct(WerewolfGameProcess):
 class SheriffElection(WerewolfGameProcess):
 
     def discussion(self):
-        logger.info(f"\n{'='*64}\n警长选举-讨论\n{'='*64}")
         discussion = self.create_subprocess(
             Discussion,
             announcement="现在开始警长选举讨论，请依次发言。"
@@ -709,7 +713,6 @@ class SheriffElection(WerewolfGameProcess):
         self.execute_subprocess(discussion)
 
     def voting(self):
-        logger.info(f"\n{'='*64}\n警长选举-投票\n{'='*64}")
         voting = self.create_subprocess(
             Voting,
             announcement="现在开始投票选举警长",
@@ -744,7 +747,6 @@ class SheriffElection(WerewolfGameProcess):
 
 class Accusation(WerewolfGameProcess):
     def discussion(self):
-        logger.info(f"\n{'='*64}\n第{self.game.round}天-指控狼人-讨论\n{'='*64}")
         discussion = self.create_subprocess(
             Discussion,
             name="accusation discussion",
@@ -753,7 +755,6 @@ class Accusation(WerewolfGameProcess):
         self.execute_subprocess(discussion)
 
     def voting(self):
-        logger.info(f"\n{'='*64}\n第{self.game.round}天-指控狼人-投票\n{'='*64}")
         voting = self.create_subprocess(
             Voting,
             announcement="现在开始投票指控狼人",
@@ -797,7 +798,6 @@ class Night(WerewolfGameProcess):
             'heal': False,
             'poison_target': None
         }
-        logger.info(f"\n{'='*64}\n第{self.game.round}夜\n{'='*64}")
         self.moderator.speak(f"第{self.game.round}夜，天黑了。")
 
     def seer_act(self):
@@ -838,7 +838,6 @@ class Day(WerewolfGameProcess):
 
     def dawn(self):
         self.payload = {}
-        logger.info(f"\n{'='*64}\n第{self.game.round}天\n{'='*64}")
         self.moderator.speak(f"第{self.game.round}天，天亮了。")
 
     def sheriff_election(self):
@@ -870,10 +869,13 @@ class Day(WerewolfGameProcess):
 
 class WerewolfGame(Game):
     info = WEREWOLF_INFO
-    name = WEREWOLF_GAME_NAME
+    name = "狼人杀"
 
     def __init__(self, config):
-        super().__init__(self.name)
+        super().__init__(
+            name=self.name,
+            language=config.get("language", "zh"),
+        )
 
         self.setup = config["setup"]
 
@@ -988,34 +990,29 @@ class WerewolfGame(Game):
 
             logger.info(f"initiate {player} {player.role}")
 
-        detail = {}
+        system = "你正在玩一个游戏。\n" + self.info
+        detail = {"system": player.system}
 
         for player in self.alive_players:
-            player.initialize_system(self.info)
+            player.initialize_system(system)
             self.moderator.speak(
                 msg=f"你是{player}，你的身份是{player.role}。",
                 audience=player
             )
-            detail["system"] = player.system
             detail[str(player)] = player.role
 
         self.record_detail(detail)
-
-        logger.info(f"\n{'='*64}\n游戏开始\n{'='*64}")
         self.moderator.speak("游戏开始。")
 
-    def prepare_day_night_loop(self):
+    def day_night_loop(self):
         self.create_subprocess(Night)
         self.create_subprocess(Day)
         self.execute_subprocesses_loop()
-
-    def save_game(self):
-        self.save()
 
     @property
     def sequence(self):
         return [
             self.initialize,
-            self.prepare_day_night_loop,
-            self.save_game
+            self.day_night_loop,
+            self.save
         ]
