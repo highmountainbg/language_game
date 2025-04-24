@@ -388,15 +388,6 @@ class Game(Process):
         if self.node is not None:
             self.node.data["detail"].append(data)
 
-    def record_result(self):
-        """
-        Record the result of the game.
-        This method is used to save the game result to a file.
-        """
-        if self.node is not None:
-            self.node.data["result"].update(self.result)
-            logger.info(f"Recorded result: {self.result}")
-
     def save(self):
         """
         If the game is being sampled, puts the current process into the sampler.
@@ -415,7 +406,6 @@ class Game(Process):
 
         self.status = FINISHED
         self.curr = None
-        self.record_result()
         logger.remove()
 
         if os.path.exists(os.path.join(self.data_dir, 'game.pkl')):

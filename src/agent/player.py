@@ -89,7 +89,7 @@ class Player:
     ) -> List['Player']:
         if audience is None:
             audience = self.game.alive_players
-        elif type(audience) != list:
+        elif not isinstance(audience, list):
             audience = [audience]
         if speaker not in audience:
             audience = audience + [speaker]
@@ -157,7 +157,7 @@ class Player:
                     }
                 )
 
-            except BrainMalfunction as e:
+            except BrainMalfunction:
                 if not attempts_remain:
                     raise TooManyRetries("Exceeded max attempts.")
                 cooldown = 10
@@ -210,6 +210,19 @@ class Player:
         self.speak(content, audience)
         return result
 
+    def retrieve_memory(self):
+        return self.memory.retrieve()
+
+    def consolidate_memory(self):
+        prompt = self.memory.retrieve()
+        prompt += "\n结合你之前的记忆和新增信息，记录从游戏开始到现在发生的事。"
+
+        _, new_memory, _ = self.generate_thought_and_content(prompt)
+
+        self.memory.consolidate(new_memory)
+        logger.info(
+            f'{self} CONSOLIDATES MEMORY: "{new_memory}"')
+
     def select_one_player(
             self,
             choices: List["Player"] = None,
@@ -231,16 +244,3 @@ class Player:
 
         logger.info(f"{self} DECIDES: {result}")
         return result
-
-    def retrieve_memory(self):
-        return self.memory.retrieve()
-
-    def consolidate_memory(self):
-        prompt = self.memory.retrieve()
-        prompt += "\n结合你之前的记忆和新增信息，记录从游戏开始到现在发生的事。"
-
-        _, new_memory, _ = self.generate_thought_and_content(prompt)
-
-        self.memory.consolidate(new_memory)
-        logger.info(
-            f'{self} CONSOLIDATES MEMORY: "{new_memory}"')
