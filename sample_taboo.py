@@ -4,23 +4,19 @@ from src.sampler import (
     GameSampler,
     GameNode
 )
-from src.game.werewolf import (
-    WerewolfGame,
-    game_config_1
-)
-
+from src.game.taboo import TabooGame
 from src.utils.visualizer import create_html_tree
 
 
 if __name__ == '__main__':
-    random.seed(0)
+    random.seed(100)
 
-    game = WerewolfGame(config=game_config_1)
+    game = TabooGame(config={"round_limit": 5})
 
     sampler = GameSampler(
         name=game.name,
-        max_depth=0,
-        max_degree=1
+        max_depth=5,
+        max_degree=4
     )
 
     root_node = GameNode(

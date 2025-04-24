@@ -158,22 +158,22 @@ For each function call, return a json object with function name and arguments wi
         while not success:
             try:
                 #### dummy agent brain ####
-                thought = f"test thought {unique_identifier()}"
-                if isinstance(tool, SelectOnePlayer):
-                    choices = [p.id for p in tool.choices]
-                    if tool.abstain:
-                        choices += [0]
-                    content = str(random.choice(choices))
-                elif isinstance(tool, DecideBinary):
-                    choices = [True, False]
-                    content = str(random.choice(choices))
-                else:
-                    content = f"test content {unique_identifier()}"
-                output = f"<think>\n{thought}\n</think>\n{content}"
+                # thought = f"test thought {unique_identifier()}"
+                # if isinstance(tool, SelectOnePlayer):
+                #     choices = [p.id for p in tool.choices]
+                #     if tool.abstain:
+                #         choices += [0]
+                #     content = str(random.choice(choices))
+                # elif isinstance(tool, DecideBinary):
+                #     choices = [True, False]
+                #     content = str(random.choice(choices))
+                # else:
+                #     content = f"test content {unique_identifier()}"
+                # output = f"<think>\n{thought}\n</think>\n{content}"
                 #### dummy agent brain ####
 
                 #### real agent brain ####
-                # thought, content, output = generate(messages)
+                thought, content, output = generate(messages)
                 #### real agent brain ####
 
                 if tool is None:
@@ -195,7 +195,7 @@ For each function call, return a json object with function name and arguments wi
             except BrainMalfunction:
                 if not attempts_remain:
                     raise TooManyRetries("Exceeded max attempts.")
-                cooldown = 10
+                cooldown = 1
                 logger.warning(
                     f'{self} brain malfunction, retry after {cooldown}s')
                 time.sleep(cooldown)

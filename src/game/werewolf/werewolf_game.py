@@ -990,7 +990,7 @@ class WerewolfGame(Game):
 
             logger.info(f"initiate {player} {player.role}")
 
-        system = "你正在玩一个游戏。\n" + self.info
+        system = "\n" + self.info
         detail = {"system": player.system}
 
         for player in self.alive_players:

@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import re
 
@@ -17,6 +18,12 @@ from ..process import (
     Process,
     checkpoint,
 )
+
+
+def choose_a_word():
+    with open(os.path.join(os.path.dirname(__file__), "all_target_words.txt"), "r") as f:
+        words = f.read().splitlines()
+    return random.choice(words)
 
 
 GAME_STILL_GOING = "GAME_STILL_GOING"
@@ -170,7 +177,7 @@ class TabooGame(Game):
         self.attacker = Attacker(game=self, player_id=1)
         self.defender = Defender(game=self, player_id=2)
 
-        self.word = config.get("word")
+        self.word = config.get("word", choose_a_word())
         self.round_limit = config.get("round_limit", 10)
         self.guesses_remaining = config.get("guesses_allowed", 1)
         self.add_info()
