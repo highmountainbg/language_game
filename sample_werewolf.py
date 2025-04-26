@@ -1,8 +1,7 @@
 import random
 
 from src.sampler import (
-    GameSampler,
-    GameNode
+    GameSampler
 )
 from src.game.werewolf import (
     WerewolfGame,
@@ -19,17 +18,11 @@ if __name__ == '__main__':
 
     sampler = GameSampler(
         name=game.name,
-        max_depth=0,
-        max_degree=1
-    )
-
-    root_node = GameNode(
-        sampler=sampler,
+        max_depth=4,
+        max_degree=3,
         game=game
     )
-
     sampler.sample_trajectories()
-
     sampler.save()
 
     create_html_tree(sampler.name, sampler.id)

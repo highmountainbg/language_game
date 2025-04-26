@@ -370,7 +370,8 @@ class GameSampler:
             name: str,
             max_depth: int,
             max_degree: int = 2,
-            sample_id: Optional[str] = None
+            sample_id: Optional[str] = None,
+            game: Optional[Game] = None,
     ):
         self.name = name
         self.id = sample_id if sample_id is not None else unique_identifier()
@@ -380,18 +381,16 @@ class GameSampler:
         self.sample_queue: Deque['GameNode'] = deque()
         self.data = {}
         self.curr = None
+        self.root = None
 
         save_json(self.config, os.path.join(self.data_dir, 'config.json'))
 
-    @property
-    def root(self):
-        """
-        Returns the root node of the tree.
-        If the root node is not set, return None.
-        """
-        if self.nodes:
-            return list(self.nodes.values())[0].root
-        return None
+        if game is not None:
+            assert self.name == game.name
+            self.root = GameNode(
+                sampler=self,
+                game=game
+            )
 
     def remove_node(self, node: "GameNode"):
         if node.id in self.nodes:
@@ -545,7 +544,7 @@ def reconstruct_game_node(
 
     if parent_id is None:
         # If the parent is None, the node is the root
-        pass
+        sampler.root = node
 
     elif parent_id in sampler.nodes:
         # If the parent is already in the sampler,
