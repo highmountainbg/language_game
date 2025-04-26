@@ -113,16 +113,16 @@ For each function call, return a json object with function name and arguments wi
             speaker: 'Player',
             audience: List['Player']
     ) -> str:
-        if self.__is_speaking_to_all(audience):
-            if self.language == "zh":
-                return "所有人"
-            elif self.language == "en":
-                return "all"
-            else:
-                raise ValueError(f"Unsupported language: {self.language}")
-        else:
-            return order_str(
-                sorted(list(set(audience) - {speaker}), key=lambda x: x.id))
+        # if self.__is_speaking_to_all(audience):
+        #     if self.language == "zh":
+        #         return "所有人"
+        #     elif self.language == "en":
+        #         return "all"
+        #     else:
+        #         raise ValueError(f"Unsupported language: {self.language}")
+        # else:
+        return order_str(
+            sorted(list(set(audience) - {speaker}), key=lambda x: x.id))
 
     def speak(
             self,
@@ -231,9 +231,9 @@ For each function call, return a json object with function name and arguments wi
 
         if tool is None:
             if self.language == "zh":
-                prompt += f"\n你说话的对象是{audience_str}，思考后直接开始说话。"
+                prompt += f"\n直接对{audience_str}说话。"
             elif self.language == "en":
-                prompt += f"\nYou are speaking to {audience_str}. Speak directly after thinking."
+                prompt += f"\nSpeak directly to {audience_str}."
             else:
                 raise ValueError(f"Unsupported language: {self.language}")
         else:

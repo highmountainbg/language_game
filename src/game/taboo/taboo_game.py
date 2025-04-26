@@ -228,7 +228,7 @@ class TabooGame(Game):
     def initialize(self):
         logger.info(f"initiate {self}")
 
-        system = "You are playing a game.\n" + self.info
+        system = "You are playing a game of adversarial taboo.\n" + self.info
         detail = {
             "system": system,
             "word": self.word,
