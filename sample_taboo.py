@@ -9,7 +9,7 @@ from src.utils.visualizer import create_html_tree
 
 
 if __name__ == '__main__':
-    random.seed(100)
+    random.seed(50)
 
     game = TabooGame(config={"round_limit": 5})
 

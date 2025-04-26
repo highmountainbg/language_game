@@ -42,7 +42,7 @@ class Memory:
     def retrieve(self):
         if self.language == "zh":
             result = f"# 你的记忆\n\n{self.consolidated}"
-            result += "\n\n# 场上状态\n{self.agent.observe()}"
+            result += f"\n\n# 场上状态\n{self.agent.observe()}"
             result += "\n\n# 新增信息"
             for record in self.cache:
                 if record['type'] == 'speech':
@@ -52,7 +52,7 @@ class Memory:
 
         elif self.language == "en":
             result = f"# Your memory\n\n{self.consolidated}"
-            result += "\n\n# Game state\n{self.agent.observe()}"
+            result += f"\n\n# Game state\n{self.agent.observe()}"
             result += "\n\n# New information"
             for record in self.cache:
                 if record['type'] == 'speech':

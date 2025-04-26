@@ -522,19 +522,11 @@ class Discussion(WerewolfGameProcess):
             )
         self.execute_subprocesses_sequential()
 
-    def consolidation(self):
-        consolidation = self.create_subprocess(
-            process_class=MemoryConsolidation,
-            involved=self.involved
-        )
-        self.execute_subprocess(consolidation)
-
     @property
     def sequence(self):
         return [
             self.announce,
-            self.speak,
-            self.consolidation
+            self.speak
         ]
 
 
